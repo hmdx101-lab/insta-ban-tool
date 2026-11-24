@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INSTA BAN TOOL</title>
+
+<style>
+* {box-sizing:border-box}
+body {
+ background:#10101c;color:white;font-family:Arial;
+ text-align:center;padding:25px 12px;
+}
+.container {
+ max-width:420px;margin:auto;background:#1c1c30;
+ padding:24px;border-radius:18px;
+ box-shadow:0 0 20px #9333ea55;
+}
+h1 {color:#c084fc}
+input,select,button {
+ width:100%;padding:13px;margin:9px 0;
+ border:0;border-radius:9px;
+}
+select {background:white;color:#222}
+input {background:white;color:#222}
+button {
+ background:#9333ea;color:white;
+ font-weight:bold;cursor:pointer;
+}
+.stop {background:#dc2626}
+#log {
+ background:#10101c;padding:12px;
+ border-radius:9px;height:180px;
+ overflow:auto;text-align:right;font-size:13px;
+}
+a {color:#c084fc;overflow-wrap:anywhere}
+.note {font-size:12px;color:#bbb;line-height:1.8}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>INSTA BAN TOOL</h1>
+<p>أداة تجهيز البلاغات الرسمية</p>
+
+<input id="username"
+placeholder="اسم المستخدم">
+
+<input id="profile"
+type="url"
+placeholder="رابط حساب إنستغرام الحقيقي">
+
+<select id="reason">
+<option value="all">بلاغ شامل - جميع الأنواع التسعة</option>
+<option>انتحال شخصية</option>
+<option>تنمر أو مضايقة</option>
+<option>احتيال</option>
+<option>نشر محتوى مخالف</option>
+<option>نشر محتوى مسيء</option>
+<option>تهديد أو ابتزاز</option>
+<option>حساب مزيف</option>
+<option>انتهاك حقوق الملكية</option>
+<option>نشر معلومات شخصية دون إذن</option>
+</select>
+
+<button onclick="prepareReport()">تجهيز البلاغ</button>
+
+<hr>
+
+<h3>محاكاة العمليات</h3>
+
+<input id="count" type="number"
+min="1" max="1000" value="20"
+placeholder="عدد التكرارات">
+
+<button onclick="start()">تشغيل المحاكاة</button>
+<button class="stop" onclick="stop()">إيقاف</button>
+
+<h3>العمليات: <span id="counter">0</span></h3>
+
+<div id="log">جاهز للتشغيل...</div>
+
+<p>
+<a href="https://www.instagram.com/"
+target="_blank">الانتقال إلى إنستغرام</a>
+</p>
+
+<p class="note">
+المحاكاة محلية فقط ولا ترسل بلاغات تلقائية.
+استخدم البلاغات الرسمية عند وجود مخالفة حقيقية.
+</p>
+</div>
+
+<script>
+let timer = null;
+let current = 0;
+
+const reasons = [
+"انتحال شخصية",
+"تنمر أو مضايقة",
+"احتيال",
+"نشر محتوى مخالف",
+"نشر محتوى مسيء",
+"تهديد أو ابتزاز",
+"حساب مزيف",
+"انتهاك حقوق الملكية",
+"نشر معلومات شخصية دون إذن"
+];
+
+function getData() {
+ const user = document.getElementById("username").value.trim();
+ const profile = document.getElementById("profile").value.trim();
+
+ if (!user || !profile) {
+   alert("أدخل اسم المستخدم ورابط الحساب");
+   return null;
+ }
+
+ try {
+   const url = new URL(profile);
+   if (
+     url.protocol !== "https:" ||
+     !["instagram.com","www.instagram.com"].includes(url.hostname) ||
+     !/^\/[A-Za-z0-9._]+\/?$/.test(url.pathname)
+   ) {
+     throw new Error();
+   }
+ } catch {
+   alert("أدخل رابط حساب إنستغرام صحيحاً");
+   return null;
+ }
+
+ return {user, profile};
+}
+
+function prepareReport() {
+ const data = getData();
+ if (!data) return;
+
+ const reason = document.getElementById("reason").value;
+ const selected = reason === "all" ? reasons : [reason];
+ const log = document.getElementById("log");
+
+ log.innerHTML = "";
+
+ [ "الحساب: @" + data.user,
+   "الرابط: " + data.profile,
+   ...selected.map(r => "نوع البلاغ: " + r)
+ ].forEach(item => {
+   const p = document.createElement("p");
+   p.textContent = item;
+   log.appendChild(p);
+ });
+}
+
+function start() {
+ stop();
+
+ const data = getData();
+ if (!data) return;
+
+ const count = Number(document.getElementById("count").value);
+
+ if (!Number.isInteger(count) || count < 1 || count > 1000) {
+   alert("أدخل عدداً بين 1 و1000");
+   return;
+ }
+
+ current = 0;
+ document.getElementById("counter").textContent = 0;
+ document.getElementById("log").innerHTML = "";
+
+ timer = setInterval(() => {
+   current++;
+   document.getElementById("counter").textContent = current;
+
+   const line = document.createElement("p");
+   line.textContent =
+     "محاكاة رقم " + current +
+     " | @" + data.user;
+
+   document.getElementById("log").prepend(line);
+
+   if (current >= count) {
+     stop();
+     const done = document.createElement("p");
+     done.textContent = "اكتملت المحاكاة!";
+     document.getElementById("log").prepend(done);
+   }
+ }, 300);
+}
+
+function stop() {
+ if (timer !== null) {
+   clearInterval(timer);
+   timer = null;
+ }
+}
+</script>
+</body>
+</html>
